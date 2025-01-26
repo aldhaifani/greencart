@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import { resolve } from "path";
+import path from "path";
 import react from "@vitejs/plugin-react-swc";
 
 export default defineConfig({
@@ -7,10 +7,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        popup: resolve(__dirname, "popup.html"),
-        options: resolve(__dirname, "options.html"),
-        service_worker: resolve(__dirname, "src/background.ts"),
-        content_script: resolve(__dirname, "src/content-script.ts"),
+        popup: path.resolve(__dirname, "popup.html"),
+        options: path.resolve(__dirname, "options.html"),
+        service_worker: path.resolve(__dirname, "src/background.ts"),
+        content_script: path.resolve(__dirname, "src/content-script.ts"),
       },
       output: {
         chunkFileNames: "[name].[hash].js",
@@ -18,6 +18,11 @@ export default defineConfig({
         entryFileNames: "[name].js",
         dir: "dist",
       },
+    },
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 });
