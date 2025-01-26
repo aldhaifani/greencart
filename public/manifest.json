@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "GreenCart",
+  "description": "Calculate carbon emission of products you shop online.",
+  "version": "1.0",
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.amazon.com/*"],
+      "js": ["content_script.js"]
+    }
+  ],
+  "background": {
+    "type": "module",
+    "service_worker": "service_worker.js"
+  },
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["https://*.amazon.com/*"]
+}
