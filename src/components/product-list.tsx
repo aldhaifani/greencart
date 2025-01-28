@@ -12,6 +12,7 @@ import {
 import { ExternalLink, Trash2 } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Product } from "@/types";
+import { getStorage, setStorage } from "@/util";
 
 type SortKey = "date" | "title" | "description" | "co2";
 type SortDirection = "asc" | "desc";
@@ -36,18 +37,8 @@ export function ProductList({ searchTerm }: ProductListProps) {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        const result = await new Promise<{ browsedProducts?: Product[] }>(
-          (resolve, reject) => {
-            chrome.storage.local.get("browsedProducts", (result) => {
-              if (chrome.runtime.lastError) {
-                reject(chrome.runtime.lastError);
-                return;
-              }
-              resolve(result);
-            });
-          }
-        );
-        setProducts(result.browsedProducts || []);
+        const products = await getStorage<Product[]>("browsedProducts");
+        setProducts(products || []);
         setError(null);
       } catch (err) {
         setError(
@@ -74,28 +65,10 @@ export function ProductList({ searchTerm }: ProductListProps) {
 
   const handleDelete = useCallback(async (id: string) => {
     try {
-      const result = await new Promise<{ browsedProducts?: Product[] }>(
-        (resolve, reject) => {
-          chrome.storage.local.get("browsedProducts", (result) => {
-            if (chrome.runtime.lastError) {
-              reject(chrome.runtime.lastError);
-              return;
-            }
-            resolve(result);
-          });
-        }
-      );
-
-      const updated = (result.browsedProducts || []).filter((p) => p.id !== id);
-      await new Promise<void>((resolve, reject) => {
-        chrome.storage.local.set({ browsedProducts: updated }, () => {
-          if (chrome.runtime.lastError) {
-            reject(chrome.runtime.lastError);
-            return;
-          }
-          resolve();
-        });
-      });
+      const currentProducts =
+        (await getStorage<Product[]>("browsedProducts")) || [];
+      const updated = currentProducts.filter((p) => p.id !== id);
+      await setStorage("browsedProducts", updated);
       setProducts(updated);
       setError(null);
     } catch (err) {

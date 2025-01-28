@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { getStorage, setStorage } from "./util";
 
 import "./globals.css";
 
@@ -13,9 +14,46 @@ type SettingsProps = {
 
 export function Settings({ onBack }: SettingsProps) {
   const [apiKey, setApiKey] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const handleSave = () => {
-    alert("API key saved successfully!");
+  // Load existing API key on component mount
+  useEffect(() => {
+    const loadApiKey = async () => {
+      try {
+        setLoading(true);
+        const savedKey = await getStorage<string>("geminiApiKey");
+        if (savedKey) {
+          setApiKey(savedKey);
+        }
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load API key");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadApiKey();
+  }, []);
+
+  const handleSave = async () => {
+    if (!apiKey.trim()) {
+      setError("Please enter an API key");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      await setStorage("geminiApiKey", apiKey.trim());
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000); // Reset success message after 3 seconds
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save API key");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -45,18 +83,40 @@ export function Settings({ onBack }: SettingsProps) {
           </a>
           .
         </p>
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+            API key saved successfully!
+          </div>
+        )}
         <Input
           type="password"
           placeholder="Enter your Gemini API key"
           value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
+          onChange={(e) => {
+            setApiKey(e.target.value);
+            setError(null); // Clear error when user starts typing
+          }}
           className="mb-4"
+          disabled={loading}
         />
         <Button
           onClick={handleSave}
           className="bg-green-600 hover:bg-green-700 text-white"
+          disabled={loading}
         >
-          Save API Key
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Save API Key"
+          )}
         </Button>
       </div>
     </div>

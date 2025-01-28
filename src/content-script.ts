@@ -38,52 +38,74 @@ function extractAboutThisItem(): string[] {
 }
 
 // Extract full product information
-function extractProductInfo() {
+import { Product } from "@/types";
+
+function extractProductInfo(): Product | null {
   try {
     const asin = extractASIN(window.location.href);
     if (!asin) {
       console.warn("ASIN not found in URL:", window.location.href);
       return null;
     }
-    // Extract basic product information
-    const title =
-      document.querySelector("#productTitle")?.textContent?.trim() ||
-      "Unknown Title";
+
+    const title = document.querySelector("#productTitle")?.textContent?.trim();
+    if (!title) {
+      console.warn("Product title not found");
+      return null;
+    }
+
     const description =
       document.querySelector("#feature-bullets")?.textContent?.trim() ||
       "No Description";
-
-    // Extract detailed information
     const detailsTable = extractProductDetailsTable();
     const aboutThisItem = extractAboutThisItem();
 
-    return {
+    const product: Product = {
       id: asin,
       title,
       description,
-      details: detailsTable, // Brand name, color, weight, etc.
-      about: aboutThisItem, // Bullet-pointed features
+      details: detailsTable,
+      about: aboutThisItem,
       link: window.location.href,
       timestamp: Date.now(),
+      co2Footprint: 0, // This will be calculated by the background script
     };
+
+    return product;
   } catch (error) {
     console.error("Error extracting product info:", error);
     return null;
-  }  
+  }
 }
 
 // Send product data to the background script
-function sendProductToBackground(product: any) {
-  chrome.runtime.sendMessage(
-    { type: "SAVE_PRODUCT", payload: product },
-    (response) => {
-      if (response?.success) {
-        console.log("Product saved successfully:", product);
-      } else {
-        console.error("Failed to save product:", response?.error);
-      }
+function sendProductToBackground(product: Product): Promise<void> {
+  return new Promise((resolve, reject) => {
+    try {
+      chrome.runtime.sendMessage(
+        { type: "SAVE_PRODUCT", payload: product },
+        (response: { success: boolean; error?: string }) => {
+          if (chrome.runtime.lastError) {
+            console.error("Runtime error:", chrome.runtime.lastError);
+            reject(chrome.runtime.lastError);
+            return;
+          }
+
+          if (response?.success) {
+            console.log("Product saved successfully:", product);
+            resolve();
+          } else {
+            const error = response?.error || "Unknown error saving product";
+            console.error("Failed to save product:", error);
+            reject(new Error(error));
+          }
+        }
+      );
+    } catch (error) {
+      console.error("Error sending product to background:", error);
+      reject(error);
     }
-  );
+  });
 }
 
 // Helper function to extract ASIN from URL
@@ -105,6 +127,10 @@ export function extractASIN(url: string): string | null {
 if (window.location.hostname.includes("amazon.com")) {
   const product = extractProductInfo();
   if (product) {
-    sendProductToBackground(product);
+    sendProductToBackground(product).catch((error) => {
+      console.error("Failed to save product data:", error);
+    });
+  } else {
+    console.warn("No valid product data could be extracted from the page");
   }
 }
