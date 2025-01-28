@@ -10,22 +10,55 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ExternalLink, Trash2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Product } from "@/types";
 
+type SortKey = "date" | "title" | "description" | "co2";
+type SortDirection = "asc" | "desc";
+
+interface SortConfig {
+  key: SortKey;
+  direction: SortDirection;
+}
 
 interface ProductListProps {
   searchTerm: string;
-  sortBy: "date" | "title" | "co2";
 }
 
-export function ProductList({ searchTerm, sortBy }: ProductListProps) {
+export function ProductList({ searchTerm }: ProductListProps) {
   const [products, setProducts] = useState<Product[]>([]);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: "date",
+    direction: "desc",
+  });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    chrome.storage.local.get("browsedProducts", (result) => {
-      setProducts(result.browsedProducts || []);
-    });
+    const loadProducts = async () => {
+      try {
+        const result = await new Promise<{ browsedProducts?: Product[] }>(
+          (resolve, reject) => {
+            chrome.storage.local.get("browsedProducts", (result) => {
+              if (chrome.runtime.lastError) {
+                reject(chrome.runtime.lastError);
+                return;
+              }
+              resolve(result);
+            });
+          }
+        );
+        setProducts(result.browsedProducts || []);
+        setError(null);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "An error occurred while loading products"
+        );
+      }
+    };
+
+    loadProducts();
 
     const listener = (
       changes: Record<string, chrome.storage.StorageChange>
@@ -34,57 +67,141 @@ export function ProductList({ searchTerm, sortBy }: ProductListProps) {
         setProducts(changes.browsedProducts.newValue || []);
       }
     };
+
     chrome.storage.onChanged.addListener(listener);
     return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
 
-  const handleDelete = (id: string) => {
-    chrome.storage.local.get("browsedProducts", (result) => {
-      const updated = (result.browsedProducts || []).filter(
-        (p: Product) => p.id !== id
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const result = await new Promise<{ browsedProducts?: Product[] }>(
+        (resolve, reject) => {
+          chrome.storage.local.get("browsedProducts", (result) => {
+            if (chrome.runtime.lastError) {
+              reject(chrome.runtime.lastError);
+              return;
+            }
+            resolve(result);
+          });
+        }
       );
-      chrome.storage.local.set({ browsedProducts: updated });
-    });
-  };
+
+      const updated = (result.browsedProducts || []).filter((p) => p.id !== id);
+      await new Promise<void>((resolve, reject) => {
+        chrome.storage.local.set({ browsedProducts: updated }, () => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+            return;
+          }
+          resolve();
+        });
+      });
+      setProducts(updated);
+      setError(null);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while deleting the product"
+      );
+    }
+  }, []);
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString();
   };
 
-  const filteredAndSortedProducts = products
-    .filter((product) =>
-      product.title.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (sortBy === "date") {
-        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-      } else if (sortBy === "title") {
-        return a.title.localeCompare(b.title);
-      } else if (sortBy === "co2") {
-        return a.co2Footprint - b.co2Footprint;
+  const handleSort = (key: SortKey) => {
+    setSortConfig((current) => {
+      if (current.key === key) {
+        return { key, direction: current.direction === "asc" ? "desc" : "asc" };
       }
-      return 0;
+      return { key, direction: "asc" };
     });
+  };
 
-    const sanitizeLink = (link: string) => {
-      try {
-        return new URL(link).href;
-      } catch {
-        return "#";
-      }
-    };
+  const filteredAndSortedProducts = useMemo(() => {
+    return products
+      .filter((product) =>
+        product.title.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a, b) => {
+        const direction = sortConfig.direction === "asc" ? 1 : -1;
+        switch (sortConfig.key) {
+          case "date":
+            return (
+              direction *
+              (new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime())
+            );
+          case "title":
+            return direction * a.title.localeCompare(b.title);
+          case "description":
+            return (
+              direction *
+              (a.description || "").localeCompare(b.description || "")
+            );
+          case "co2":
+            return direction * (a.co2Footprint - b.co2Footprint);
+          default:
+            return 0;
+        }
+      });
+  }, [products, searchTerm, sortConfig]);
+
+  const getSortIcon = (key: string) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === "asc" ? " ↑" : " ↓";
+  };
+
+  const sanitizeLink = (url: string): string => {
+    try {
+      const sanitized = new URL(url);
+      return sanitized.toString();
+    } catch (e) {
+      return "#";
+    }
+  };
 
   return (
-    <div className="overflow-x-auto">
+    <div className="relative overflow-x-auto" style={{ isolation: "isolate" }}>
+      {error && (
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+          role="alert"
+        >
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead className="hidden md:table-cell">Description</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>CO2 Footprint</TableHead>
-            <TableHead className="hidden sm:table-cell">Link</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead
+              className="cursor-pointer hover:bg-gray-50 w-[20%]"
+              onClick={() => handleSort("title")}
+            >
+              Title{getSortIcon("title")}
+            </TableHead>
+            <TableHead
+              className="hidden md:table-cell cursor-pointer hover:bg-gray-50 w-[30%]"
+              onClick={() => handleSort("description")}
+            >
+              Description{getSortIcon("description")}
+            </TableHead>
+            <TableHead
+              className="cursor-pointer hover:bg-gray-50 w-[15%]"
+              onClick={() => handleSort("date")}
+            >
+              Date{getSortIcon("date")}
+            </TableHead>
+            <TableHead
+              className="cursor-pointer hover:bg-gray-50 w-[15%]"
+              onClick={() => handleSort("co2")}
+            >
+              CO2 {getSortIcon("co2")}
+            </TableHead>
+            <TableHead className="hidden sm:table-cell w-[10%]">Link</TableHead>
+            <TableHead className="w-[10%]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -111,7 +228,6 @@ export function ProductList({ searchTerm, sortBy }: ProductListProps) {
                   <Button variant="outline" size="sm">
                     Details
                   </Button>
-
                   <Button
                     variant="destructive"
                     size="sm"

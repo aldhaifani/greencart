@@ -3,20 +3,12 @@
 import { useState } from "react";
 import { ProductList } from "./product-list";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export function HistorySection() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"date" | "title" | "co2">("date");
 
   return (
-    <section>
+    <section className="relative">
       <div className="mb-4 space-y-4 sm:space-y-0 sm:flex sm:justify-between sm:items-center">
         <div className="relative w-full sm:w-64">
           <Input
@@ -41,18 +33,10 @@ export function HistorySection() {
             />
           </svg>
         </div>
-        <Select value={sortBy} onValueChange={(value: string) => setSortBy(value as "date" | "title" | "co2")}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="date">Date</SelectItem>
-            <SelectItem value="title">Title</SelectItem>
-            <SelectItem value="co2">CO2 Footprint</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
-      <ProductList searchTerm={searchTerm} sortBy={sortBy} />
+      <div className="relative z-0">
+        <ProductList searchTerm={searchTerm} />
+      </div>
     </section>
   );
 }
