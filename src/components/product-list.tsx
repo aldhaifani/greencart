@@ -10,40 +10,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ExternalLink, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Product } from "@/types";
 
-const initialProducts = [
-  {
-    id: 1,
-    title: "Organic Cotton T-Shirt",
-    description: "Eco-friendly, sustainably sourced cotton t-shirt",
-    date: "2023-06-15",
-    co2Footprint: 2.3,
-    link: "https://example.com/organic-tshirt",
-    weight: "150g",
-    material: "100% Organic Cotton",
-  },
-  {
-    id: 2,
-    title: "Recycled Plastic Water Bottle",
-    description: "Durable water bottle made from recycled plastic",
-    date: "2023-06-14",
-    co2Footprint: 1.5,
-    link: "https://example.com/recycled-bottle",
-    weight: "200g",
-    material: "100% Recycled PET",
-  },
-  {
-    id: 3,
-    title: "Bamboo Toothbrush",
-    description: "Biodegradable toothbrush with bamboo handle",
-    date: "2023-06-13",
-    co2Footprint: 0.8,
-    link: "https://example.com/bamboo-toothbrush",
-    weight: "15g",
-    material: "Bamboo handle, Nylon bristles",
-  },
-];
 
 interface ProductListProps {
   searchTerm: string;
@@ -51,7 +20,36 @@ interface ProductListProps {
 }
 
 export function ProductList({ searchTerm, sortBy }: ProductListProps) {
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    chrome.storage.local.get("browsedProducts", (result) => {
+      setProducts(result.browsedProducts || []);
+    });
+
+    const listener = (
+      changes: Record<string, chrome.storage.StorageChange>
+    ) => {
+      if (changes.browsedProducts) {
+        setProducts(changes.browsedProducts.newValue || []);
+      }
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => chrome.storage.onChanged.removeListener(listener);
+  }, []);
+
+  const handleDelete = (id: string) => {
+    chrome.storage.local.get("browsedProducts", (result) => {
+      const updated = (result.browsedProducts || []).filter(
+        (p: Product) => p.id !== id
+      );
+      chrome.storage.local.set({ browsedProducts: updated });
+    });
+  };
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString();
+  };
 
   const filteredAndSortedProducts = products
     .filter((product) =>
@@ -59,7 +57,7 @@ export function ProductList({ searchTerm, sortBy }: ProductListProps) {
     )
     .sort((a, b) => {
       if (sortBy === "date") {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
       } else if (sortBy === "title") {
         return a.title.localeCompare(b.title);
       } else if (sortBy === "co2") {
@@ -68,9 +66,13 @@ export function ProductList({ searchTerm, sortBy }: ProductListProps) {
       return 0;
     });
 
-  const handleDelete = (id: number) => {
-    setProducts(products.filter((product) => product.id !== id));
-  };
+    const sanitizeLink = (link: string) => {
+      try {
+        return new URL(link).href;
+      } catch {
+        return "#";
+      }
+    };
 
   return (
     <div className="overflow-x-auto">
@@ -92,11 +94,11 @@ export function ProductList({ searchTerm, sortBy }: ProductListProps) {
               <TableCell className="hidden md:table-cell">
                 {product.description}
               </TableCell>
-              <TableCell>{product.date}</TableCell>
+              <TableCell>{formatDate(product.timestamp)}</TableCell>
               <TableCell>{product.co2Footprint} kg</TableCell>
               <TableCell className="hidden sm:table-cell">
                 <a
-                  href={product.link}
+                  href={sanitizeLink(product.link)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-green-600 hover:underline flex items-center"
