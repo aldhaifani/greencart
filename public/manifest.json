@@ -13,7 +13,13 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://*.amazon.com/*"],
+      "matches": [
+        "https://*.amazon.com/*",
+        "https://*.amazon.co.uk/*",
+        "https://*.amazon.ca/*",
+        "https://*.amazon.de/*",
+        "https://*.amazon.fr/*"
+      ],
       "js": ["content_script.js"],
       "css": ["content_script.css"]
     }
@@ -23,5 +29,11 @@
     "service_worker": "service_worker.js"
   },
   "permissions": ["storage", "activeTab", "scripting"],
-  "host_permissions": ["https://*.amazon.com/*"]
+  "host_permissions": [
+    "https://*.amazon.com/*",
+    "https://*.amazon.co.uk/*",
+    "https://*.amazon.ca/*",
+    "https://*.amazon.de/*",
+    "https://*.amazon.fr/*"
+  ]
 }

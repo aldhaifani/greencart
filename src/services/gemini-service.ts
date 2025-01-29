@@ -16,13 +16,6 @@ class RateLimitError extends GeminiError {
   }
 }
 
-class NetworkError extends GeminiError {
-  constructor(message: string = "Network request failed") {
-    super(message);
-    this.name = "NetworkError";
-  }
-}
-
 class ResponseParsingError extends GeminiError {
   constructor(message: string) {
     super(message);
