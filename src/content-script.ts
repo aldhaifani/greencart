@@ -46,6 +46,34 @@ function extractAboutThisItem(): string[] {
   return bulletPoints.filter((point) => point !== ""); // Remove empty points
 }
 
+function extractCustomerReviews(): { average: number; total: number } | null {
+  try {
+    // Get the rating value
+    const ratingElement = document.querySelector("#acrPopover");
+    if (!ratingElement) return null;
+
+    const ratingText = ratingElement.getAttribute("title") || "";
+    const ratingMatch = ratingText.match(/(\d+(?:\.\d+)?)/); // Match the first number (with optional decimal)
+
+    // Get the total number of ratings
+    const totalElement = document.querySelector("#acrCustomerReviewText");
+    if (!totalElement) return null;
+
+    const totalText = totalElement.textContent || "";
+    const totalMatch = totalText.match(/(\d+(?:,\d+)*)/); // Match numbers with optional commas
+
+    if (!ratingMatch || !totalMatch) return null;
+
+    const average = parseFloat(ratingMatch[1]);
+    const total = parseInt(totalMatch[1].replace(/,/g, ""));
+
+    return { average, total };
+  } catch (error) {
+    console.error("Error extracting customer reviews:", error);
+    return null;
+  }
+}
+
 function extractProductInfo(): Product | null {
   try {
     const asin = extractASIN(window.location.href);
@@ -65,6 +93,7 @@ function extractProductInfo(): Product | null {
       "No Description";
     const detailsTable = extractProductDetailsTable();
     const aboutThisItem = extractAboutThisItem();
+    const rating = extractCustomerReviews();
 
     const product: Product = {
       id: asin,
@@ -75,6 +104,7 @@ function extractProductInfo(): Product | null {
       link: window.location.href,
       timestamp: Date.now(),
       co2Footprint: 0, // This will be calculated by the background script
+      rating: rating || undefined,
     };
 
     return product;
@@ -241,7 +271,8 @@ const createCO2Overlay = (asin: string) => {
         '<path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/>';
       loader.setAttribute("class", "yellow-loader");
       mainText.className = "main-text";
-      mainText.textContent = "Calculation taking longer than expected. Please go to the extension settings and provide a valid API key.";
+      mainText.textContent =
+        "Calculation taking longer than expected. Please go to the extension settings and provide a valid API key.";
 
       chrome.storage.onChanged.removeListener(storageListener);
     }, 15000);

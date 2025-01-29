@@ -13,4 +13,8 @@ export interface Product {
   co2CalculationModel?: string;
   weight?: string;
   material?: string;
+  rating?: {
+    average: number;
+    total: number;
+  };
 }

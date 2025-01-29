@@ -11,7 +11,10 @@ interface ProductDetailsModalProps {
   onClose: () => void;
 }
 
-export function ProductDetailsModal({ product, onClose }: ProductDetailsModalProps) {
+export function ProductDetailsModal({
+  product,
+  onClose,
+}: ProductDetailsModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -26,7 +29,23 @@ export function ProductDetailsModal({ product, onClose }: ProductDetailsModalPro
           {/* Basic Details */}
           <div>
             <h3 className="font-medium text-lg mb-2">{product.title}</h3>
-            <h4 className="font-small text-lg mb-2">CO2 Footprint: {product.co2Footprint} kg <span className="text-tag">{product.co2CalculationModel}</span></h4>
+            {product.rating && (
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center">
+                  <span className="text-yellow-400">★</span>
+                  <span className="ml-1 text-sm">
+                    {product.rating.average.toFixed(1)}
+                  </span>
+                </div>
+                <span className="text-sm text-gray-500">
+                  ({product.rating.total.toLocaleString()} ratings)
+                </span>
+              </div>
+            )}
+            <h4 className="font-small text-lg mb-2">
+              CO2 Footprint: {product.co2Footprint} kg{" "}
+              <span className="text-tag">{product.co2CalculationModel}</span>
+            </h4>
             <p className="text-gray-600">{product.description}</p>
             <a
               href={sanitizeLink(product.link)}
@@ -42,12 +61,14 @@ export function ProductDetailsModal({ product, onClose }: ProductDetailsModalPro
           <div className="border-t pt-4">
             <h4 className="font-medium mb-2">Technical Details</h4>
             <div className="grid grid-cols-2 gap-4">
-              {Object.entries(product.details).map(([key, value]) => (
-                <div key={key} className="space-y-1">
-                  <p className="text-sm font-medium text-gray-600">{key}</p>
-                  <p className="text-sm">{value}</p>
-                </div>
-              ))}
+              {Object.entries(product.details)
+                .filter(([key]) => !key.toLowerCase().includes("review"))
+                .map(([key, value]) => (
+                  <div key={key} className="space-y-1">
+                    <p className="text-sm font-medium text-gray-600">{key}</p>
+                    <p className="text-sm">{value}</p>
+                  </div>
+                ))}
             </div>
           </div>
 
