@@ -159,6 +159,33 @@ export function extractASIN(url: string): string | null {
   return asinMatches[1];
 }
 
+// Helper function to check if current page is a product page
+function isProductPage(url: string): boolean {
+  return /\/(?:dp|gp\/product|product|exec\/obidos\/asin)\/[A-Z0-9]{10}/i.test(
+    url
+  );
+}
+
+// Initialize extension on page load
+const init = async () => {
+  try {
+    // Only proceed if we're on a product page
+    if (!isProductPage(window.location.href)) {
+      return;
+    }
+
+    const product = extractProductInfo();
+    if (!product) return;
+
+    await sendProductToBackground(product);
+
+    // Create and display the CO2 overlay
+    createCO2Overlay(product.id);
+  } catch (error) {
+    console.error("Error initializing extension:", error);
+  }
+};
+
 const createCO2Overlay = (asin: string) => {
   // Create overlay container
   const overlay = document.createElement("div");
@@ -363,13 +390,7 @@ async function getStorage<T>(key: string): Promise<T | undefined> {
 // Main script logic
 if (window.location.hostname.includes("amazon.com")) {
   injectStyles(); // Inject styles first
-  const product = extractProductInfo();
-  if (product) {
-    createCO2Overlay(product.id);
-    sendProductToBackground(product).catch((error) => {
-      console.error("Failed to save product data:", error);
-    });
-  } else {
-    console.warn("Failed to extract product info");
-  }
+  init().catch((error) => {
+    console.error("Failed to initialize extension:", error);
+  });
 }

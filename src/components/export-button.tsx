@@ -30,7 +30,7 @@ export function ExportButton() {
           `"${(product.description || "").replace(/"/g, '""')}"`,
           product.co2Footprint,
           `"${product.co2CalculationModel || ""}"`,
-          `"${product.asin || ""}"`,
+          `"${product.id || ""}"`,
           product.rating?.average || "",
           product.rating?.total || "",
           new Date(product.timestamp).toLocaleDateString(),
