@@ -34,29 +34,56 @@ async function extractCO2Value(response: string): Promise<number> {
   return match ? parseFloat(match[0]) : 0;
 }
 
-export async function calculateCO2Footprint(product: Product): Promise<number> {
-  try {
-    const apiKey = await getStorage<string>("geminiApiKey");
-    if (!apiKey) {
-      console.warn("Gemini API key not found, using default CO2 value");
-      return 0;
-    }
+const GEMINI_MODELS = [
+  "gemini-2.0-flash-exp",
+  "gemini-2.0-flash-thinking-exp-01-21",
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
+  "gemini-1.5-flash-8b",
+  "gemini-exp-1206",
+];
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash-exp",
-    });
-
-    const chatSession = model.startChat({
-      generationConfig,
-      history: [],
-    });
-
-    const result = await chatSession.sendMessage(formatPrompt(product));
-    const co2Value = await extractCO2Value(result.response.text());
-    return co2Value;
-  } catch (error) {
-    console.error("Error calculating CO2 footprint:", error);
-    return 0;
+export async function calculateCO2Footprint(
+  product: Product
+): Promise<{ co2Value: number; model: string | null }> {
+  const apiKey = await getStorage<string>("geminiApiKey");
+  if (!apiKey) {
+    console.warn("Gemini API key not found");
+    throw new Error("API key not found");
   }
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  let lastError: Error | null = null;
+
+  for (const modelName of GEMINI_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+      });
+
+      const chatSession = model.startChat({
+        generationConfig,
+        history: [],
+      });
+
+      const result = await chatSession.sendMessage(formatPrompt(product));
+      const co2Value = await extractCO2Value(result.response.text());
+
+      if (co2Value > 0) {
+        return { co2Value, model: modelName };
+      }
+
+      console.warn(
+        `Model ${modelName} returned invalid CO2 value: ${co2Value}`
+      );
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`Error with model ${modelName}:`, error);
+    }
+  }
+
+  throw (
+    lastError ||
+    new Error("Failed to calculate CO2 footprint with all available models")
+  );
 }

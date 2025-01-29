@@ -8,6 +8,7 @@ export interface Product {
   link: string;
   timestamp: number;
   co2Footprint: number;
+  co2CalculationModel?: string;
   weight?: string;
   material?: string;
 }

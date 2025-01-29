@@ -24,20 +24,45 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Save product data to chrome.storage.local
 async function handleSaveProduct(product: Product) {
-  const currentData = (await getStorage<Product[]>("browsedProducts")) || [];
+  try {
+    // First check for duplicates to avoid unnecessary CO2 calculations
+    const currentData = (await getStorage<Product[]>("browsedProducts")) || [];
+    const isDuplicate = currentData.some((p) => p.id === product.id);
+    if (isDuplicate) {
+      console.log("Product already exists, skipping:", product.id);
+      return;
+    }
 
-  // Add CO2 calculation
-  const co2Footprint = await calculateCO2Footprint(product);
-  const productWithCO2 = {
-    ...product,
-    co2Footprint,
-  };
+    // Attempt CO2 calculation
+    let co2Result;
+    try {
+      co2Result = await calculateCO2Footprint(product);
+    } catch (error) {
+      console.error(
+        "CO2 calculation failed:",
+        error instanceof Error ? error.message : String(error)
+      );
+      throw new Error("Failed to calculate CO2 footprint");
+    }
 
-  const isDuplicate = currentData.some((p) => p.id === productWithCO2.id);
-  if (isDuplicate) return;
+    // Only save if CO2 calculation succeeded
+    const productWithCO2 = {
+      ...product,
+      co2Footprint: co2Result.co2Value,
+      co2CalculationModel: co2Result.model,
+    };
 
-  currentData.push(productWithCO2);
-  await setStorage("browsedProducts", currentData);
+    currentData.push({
+      ...productWithCO2,
+      co2CalculationModel: productWithCO2.co2CalculationModel || undefined
+    });
+    await setStorage("browsedProducts", currentData);
+    console.log("Product saved successfully with CO2 data:", productWithCO2.id);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Failed to save product:", errorMessage);
+    throw new Error(`Failed to save product: ${errorMessage}`);
+  }
 }
 
 // Example helper to get all saved products (useful for debugging or popup UI)

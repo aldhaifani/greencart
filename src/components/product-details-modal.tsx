@@ -26,7 +26,7 @@ export function ProductDetailsModal({ product, onClose }: ProductDetailsModalPro
           {/* Basic Details */}
           <div>
             <h3 className="font-medium text-lg mb-2">{product.title}</h3>
-            <h4 className="font-small text-lg mb-2">CO2 Footprint: {product.co2Footprint} kg</h4>
+            <h4 className="font-small text-lg mb-2">CO2 Footprint: {product.co2Footprint} kg <span className="text-tag">{product.co2CalculationModel}</span></h4>
             <p className="text-gray-600">{product.description}</p>
             <a
               href={sanitizeLink(product.link)}
