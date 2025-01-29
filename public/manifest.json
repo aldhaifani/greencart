@@ -4,16 +4,17 @@
   "description": "See real-time CO2 footprint of Amazon products to make eco-friendly shopping decisions and track your environmental impact.",
   "version": "1.0",
   "icons": {
-    "16": "icon.png",
-    "48": "icon.png",
-    "128": "icon.png"
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "32": "icon32.png",
+    "128": "icon128.png"
   },
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
   },
   "action": {
-    "default_icon": "icon.png",
+    "default_icon": "icon128.png",
     "default_popup": "popup.html"
   },
   "content_scripts": [
