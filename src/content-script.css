@@ -1,0 +1,170 @@
+/* Overlay positioning */
+.greencart-overlay {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: white;
+  width: 350px;
+  height: 180px;
+  border-radius: 0.8rem;
+  -webkit-box-shadow: 0px 0px 38px 9px rgba(166, 188, 255, 0.89);
+  -moz-box-shadow: 0px 0px 38px 9px rgba(166, 188, 255, 0.89);
+  box-shadow: 0px 0px 38px 9px rgba(166, 188, 255, 0.89);
+  padding: 1.25rem;
+  z-index: 50;
+}
+
+.greencart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.greencart-title-container {
+  display: flex;
+  align-items: end;
+  gap: 0.5rem;
+}
+
+.greencart-extension-name {
+  font-weight: bold;
+  font-size: 1.8rem;
+  line-height: 1.75rem;
+  color: rgba(56, 175, 58, 0.85);
+}
+
+.greencart-estimate-badge {
+  font-size: 0.8rem;
+  line-height: 1.2rem;
+  font-weight: 500;
+  color: rgba(113, 115, 114, 0.8);
+  background-color: rgba(169, 164, 157, 0.777);
+  padding: 0.1rem 0.25rem;
+  border-radius: 0.25rem;
+  text-align: center;
+}
+
+.greencart-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.close-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid hsl(240, 5%, 84%);
+  background-color: transparent;
+  color: hsl(240, 10%, 3%);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.close-button:hover {
+  background-color: hsl(0, 0%, 79%);
+  color: hsl(240, 10%, 3%);
+}
+
+.close-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(240, 5%, 84%);
+}
+
+.close-button-x {
+  height: 1rem;
+  width: 1rem;
+}
+
+.greencart-overlay {
+  z-index: 9999;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.loader-symbol {
+  height: 2rem;
+  width: 2rem;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.status-div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.co2-value {
+  font-weight: 500;
+  font-size: 1.5rem;
+}
+
+.co2-calc-model-tag {
+  font-size: 0.9rem;
+  line-height: 1.2rem;
+  font-weight: 500;
+  color: rgba(113, 115, 114, 0.8);
+  background-color: rgba(169, 164, 157, 0.777);
+  padding: 0.1rem 0.25rem;
+  border-radius: 0.25rem;
+  text-align: center;
+}
+
+.status-span {
+  text-align: center;
+}
+
+.main-text-yellow {
+  font-weight: 500;
+  font-size: medium;
+}
+
+.yellow-loader {
+  height: 2rem;
+  width: 2rem;
+}
+
+.green-loader {
+  height: 2rem;
+  width: 2rem;
+}
+
+.main-text-green {
+  font-weight: 500;
+  font-size: medium;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: end;
+  gap: 0.5rem;
+  height: 65px;
+}
+
+.loader-red {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.main-text-red {
+  font-weight: 500;
+  font-size: medium;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

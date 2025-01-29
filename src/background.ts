@@ -51,8 +51,10 @@ async function handleSaveProduct(product: Product) {
       co2CalculationModel: geminiResult.model,
     };
 
-    currentData.push(productWithAI);
-    await setStorage("browsedProducts", currentData);
+    const updatedData = currentData.filter((p) => p.id !== product.id);
+    updatedData.push(productWithAI);
+
+    await setStorage("browsedProducts", updatedData);
     console.log("Product saved successfully with AI data:", productWithAI.id);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

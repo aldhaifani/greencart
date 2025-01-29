@@ -14,11 +14,13 @@ export default defineConfig({
       },
       output: {
         chunkFileNames: "[name].[hash].js",
-        assetFileNames: "[name].[hash].[ext]",
+        assetFileNames: "[name].[ext]",
         entryFileNames: "[name].js",
         dir: "dist",
+        inlineDynamicImports: false,
       },
     },
+    cssCodeSplit: true,
   },
   resolve: {
     alias: {
