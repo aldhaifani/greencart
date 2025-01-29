@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GreenCart",
-  "description": "Calculate carbon emission of products you shop online.",
+  "description": "Make eco-friendly shopping decisions on Amazon by seeing the CO2 footprint of products in real-time. Track your environmental impact and shop more sustainably.",
   "version": "1.0",
   "options_ui": {
     "page": "options.html",
