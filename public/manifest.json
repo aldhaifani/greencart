@@ -3,6 +3,11 @@
   "name": "GreenCart",
   "description": "Make eco-friendly shopping decisions on Amazon by seeing the CO2 footprint of products in real-time. Track your environmental impact and shop more sustainably.",
   "version": "1.0",
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true

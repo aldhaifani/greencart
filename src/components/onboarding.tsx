@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { validateApiKey } from "@/services/gemini-service";
+import { ExternalLink } from "lucide-react";
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -126,6 +127,16 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               ready to help you make environmentally conscious shopping
               decisions.
             </p>
+            Built with 💚, by{" "}
+            <a
+              href="https://www.linkedin.com/in/aldhaifani/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-green-600 hover:underline flex items-center"
+            >
+              Tareq - LinkedIn <ExternalLink className="ml-1 h-4 w-4" />
+            </a>
+            <p></p>
             <Button className="w-full" onClick={onComplete}>
               Get Started
             </Button>
