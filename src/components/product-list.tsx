@@ -130,8 +130,6 @@ export function ProductList({ searchTerm }: ProductListProps) {
     return sortConfig.direction === "asc" ? " ↑" : " ↓";
   };
 
-  
-
   return (
     <div className="relative overflow-x-auto" style={{ isolation: "isolate" }}>
       {error && (
@@ -176,9 +174,11 @@ export function ProductList({ searchTerm }: ProductListProps) {
         <TableBody>
           {filteredAndSortedProducts.map((product) => (
             <TableRow key={product.id}>
-              <TableCell className="font-medium">{product.title}</TableCell>
+              <TableCell className="font-medium">
+                {product.conciseTitle || product.title}
+              </TableCell>
               <TableCell className="hidden md:table-cell">
-                {product.description}
+                {product.conciseDescription || product.description}
               </TableCell>
               <TableCell>{formatDate(product.timestamp)}</TableCell>
               <TableCell>{product.co2Footprint} kg</TableCell>

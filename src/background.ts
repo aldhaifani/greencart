@@ -1,9 +1,9 @@
 import { getStorage, setStorage } from "./util";
 import { Product } from "./types";
-import { calculateCO2Footprint } from "./co2-calculator";
+import { processProductWithGemini } from "./services/gemini-service";
 
 // Listener for messages from the content script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   try {
     if (message.type === "SAVE_PRODUCT") {
       handleSaveProduct(message.payload)
@@ -25,7 +25,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Save product data to chrome.storage.local
 async function handleSaveProduct(product: Product) {
   try {
-    // First check for duplicates to avoid unnecessary CO2 calculations
+    // First check for duplicates to avoid unnecessary calculations
     const currentData = (await getStorage<Product[]>("browsedProducts")) || [];
     const isDuplicate = currentData.some((p) => p.id === product.id);
     if (isDuplicate) {
@@ -33,31 +33,27 @@ async function handleSaveProduct(product: Product) {
       return;
     }
 
-    // Attempt CO2 calculation
-    let co2Result;
-    try {
-      co2Result = await calculateCO2Footprint(product);
-    } catch (error) {
-      console.error(
-        "CO2 calculation failed:",
-        error instanceof Error ? error.message : String(error)
-      );
-      throw new Error("Failed to calculate CO2 footprint");
+    // Get API key for Gemini processing
+    const apiKey = await getStorage<string>("geminiApiKey");
+    if (!apiKey) {
+      throw new Error("API key not found");
     }
 
-    // Only save if CO2 calculation succeeded
-    const productWithCO2 = {
+    // Process product with Gemini (unified request for CO2, title, and description)
+    const geminiResult = await processProductWithGemini(product, apiKey);
+
+    // Save the processed product
+    const productWithAI = {
       ...product,
-      co2Footprint: co2Result.co2Value,
-      co2CalculationModel: co2Result.model,
+      conciseTitle: geminiResult.conciseTitle,
+      conciseDescription: geminiResult.conciseDescription,
+      co2Footprint: geminiResult.co2Value,
+      co2CalculationModel: geminiResult.model,
     };
 
-    currentData.push({
-      ...productWithCO2,
-      co2CalculationModel: productWithCO2.co2CalculationModel || undefined
-    });
+    currentData.push(productWithAI);
     await setStorage("browsedProducts", currentData);
-    console.log("Product saved successfully with CO2 data:", productWithCO2.id);
+    console.log("Product saved successfully with AI data:", productWithAI.id);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Failed to save product:", errorMessage);
@@ -66,7 +62,7 @@ async function handleSaveProduct(product: Product) {
 }
 
 // Example helper to get all saved products (useful for debugging or popup UI)
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   try {
     if (message.type === "GET_PRODUCTS") {
       getStorage<any[]>("browsedProducts")
