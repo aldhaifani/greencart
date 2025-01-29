@@ -13,6 +13,8 @@ import { ExternalLink, Trash2 } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Product } from "@/types";
 import { getStorage, setStorage } from "@/util";
+import { ProductDetailsModal } from "@/components/product-details-modal";
+import { sanitizeLink } from "@/util";
 
 type SortKey = "date" | "title" | "description" | "co2";
 type SortDirection = "asc" | "desc";
@@ -33,6 +35,7 @@ export function ProductList({ searchTerm }: ProductListProps) {
     direction: "desc",
   });
   const [error, setError] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -127,14 +130,7 @@ export function ProductList({ searchTerm }: ProductListProps) {
     return sortConfig.direction === "asc" ? " ↑" : " ↓";
   };
 
-  const sanitizeLink = (url: string): string => {
-    try {
-      const sanitized = new URL(url);
-      return sanitized.toString();
-    } catch (e) {
-      return "#";
-    }
-  };
+  
 
   return (
     <div className="relative overflow-x-auto" style={{ isolation: "isolate" }}>
@@ -198,7 +194,11 @@ export function ProductList({ searchTerm }: ProductListProps) {
               </TableCell>
               <TableCell>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedProduct(product)}
+                  >
                     Details
                   </Button>
                   <Button
@@ -214,6 +214,12 @@ export function ProductList({ searchTerm }: ProductListProps) {
           ))}
         </TableBody>
       </Table>
+      {selectedProduct && (
+        <ProductDetailsModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
     </div>
   );
 }

@@ -25,3 +25,12 @@ export function getStorage<V = any>(key: string): Promise<V | undefined> {
     });
   });
 }
+
+export function sanitizeLink(url: string) {
+  try {
+    const sanitized = new URL(url);
+    return sanitized.toString();
+  } catch (e) {
+    return "#";
+  }
+};
