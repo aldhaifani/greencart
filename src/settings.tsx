@@ -46,11 +46,23 @@ export function Settings({ onBack }: SettingsProps) {
     try {
       setLoading(true);
       setError(null);
+
+      // Validate the API key by making a test request
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro?key=" +
+          apiKey.trim()
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || "Invalid API key");
+      }
+
       await setStorage("geminiApiKey", apiKey.trim());
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000); // Reset success message after 3 seconds
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save API key");
+      setError(err instanceof Error ? err.message : "Invalid API key");
     } finally {
       setLoading(false);
     }
