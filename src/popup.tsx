@@ -1,17 +1,39 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./popup.css";
 import "./globals.css";
 
 import { Header } from "@/components/header";
 import { HistorySection } from "@/components/history-section";
 import { ExportButton } from "@/components/export-button";
+import { Onboarding } from "@/components/onboarding";
+import { getStorage, setStorage } from "./util";
 
 import { Settings } from "./settings";
 
 const Popup = () => {
   const [showOptions, setShowOptions] = useState(false);
+  const [isFirstTime, setIsFirstTime] = useState(true);
+
+  useEffect(() => {
+    const checkFirstTimeUser = async () => {
+      const hasCompletedOnboarding = await getStorage<boolean>(
+        "hasCompletedOnboarding"
+      );
+      setIsFirstTime(!hasCompletedOnboarding);
+    };
+    checkFirstTimeUser();
+  }, []);
+
+  const handleOnboardingComplete = async () => {
+    await setStorage("hasCompletedOnboarding", true);
+    setIsFirstTime(false);
+  };
+
+  if (isFirstTime) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <>

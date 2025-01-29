@@ -59,6 +59,7 @@ async function handleSaveProduct(product: Product) {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Failed to save product:", errorMessage);
+    alert("Failed to save product. Please check your API key and try again.");
     throw new Error(`Failed to save product: ${errorMessage}`);
   }
 }

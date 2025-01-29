@@ -1,5 +1,4 @@
 import { Product } from "@/types";
-
 import "./content-script.css";
 
 // Create a style element and inject the CSS
@@ -242,7 +241,7 @@ const createCO2Overlay = (asin: string) => {
         '<path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/>';
       loader.setAttribute("class", "yellow-loader");
       mainText.className = "main-text";
-      mainText.textContent = "Calculation taking longer than expected";
+      mainText.textContent = "Calculation taking longer than expected. Please go to the extension settings and provide a valid API key.";
 
       chrome.storage.onChanged.removeListener(storageListener);
     }, 15000);
@@ -278,29 +277,57 @@ const createCO2Overlay = (asin: string) => {
   });
 
   // Helper function to update overlay content
-  function updateOverlayContent(product: Product) {
+  async function updateOverlayContent(product: Product) {
     loader.classList.remove("animate-spin");
 
-    if (product.co2Footprint) {
-      // Success state
-      loader.innerHTML =
-        '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>';
-      loader.setAttribute("class", "green-loader");
-      mainText.className = "main-text-green";
-      mainText.innerHTML = `
-        <span class="co2-value">${product.co2Footprint} kg CO₂</span>
-        <span class="co2-calc-model-tag">${product.co2CalculationModel}</span>
-      `;
-    } else {
-      // Error state
+    try {
+      const apiKey = await getStorage<string>("geminiApiKey");
+      if (!apiKey) {
+        loader.innerHTML =
+          '<path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/>';
+        loader.setAttribute("class", "yellow-loader");
+        mainText.className = "main-text";
+        mainText.textContent =
+          "API key not provided. Please go to the extension settings and provide a valid API key.";
+        return;
+      }
+
+      if (product.co2Footprint) {
+        // Success state
+        loader.innerHTML =
+          '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>';
+        loader.setAttribute("class", "green-loader");
+        mainText.className = "main-text-green";
+        mainText.innerHTML = `
+          <span class="co2-value">${product.co2Footprint} kg CO₂</span>
+          <span class="co2-calc-model-tag">${product.co2CalculationModel}</span>
+        `;
+      } else {
+        // Error state
+        loader.innerHTML =
+          '<path d="M18 6 6 18"/><path d="m6 6 12 12"/><path d="M12 8v4"/><path d="M12 16h.01"/>';
+        loader.setAttribute("class", "loader-red");
+        mainText.className = "main-text-red";
+        mainText.textContent = "Failed to calculate impact";
+      }
+    } catch (error) {
       loader.innerHTML =
         '<path d="M18 6 6 18"/><path d="m6 6 12 12"/><path d="M12 8v4"/><path d="M12 16h.01"/>';
       loader.setAttribute("class", "loader-red");
       mainText.className = "main-text-red";
-      mainText.textContent = "Failed to calculate impact";
+      mainText.textContent = "Error checking API key status";
     }
   }
 };
+
+// Simplified storage access for content script
+async function getStorage<T>(key: string): Promise<T | undefined> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(key, (result) => {
+      resolve(result[key]);
+    });
+  });
+}
 
 // Main script logic
 if (window.location.hostname.includes("amazon.com")) {

@@ -332,3 +332,14 @@ export async function processProductWithGemini(
   const handler = new ModelHandler(apiKey);
   return handler.processProduct(product);
 }
+
+export async function validateApiKey(apiKey: string): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro?key=${apiKey}`
+    );
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}
