@@ -1,5 +1,6 @@
 import { getStorage, setStorage } from "./util";
 import { Product } from "./types";
+import { calculateCO2Footprint } from "./co2-calculator";
 
 // Listener for messages from the content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -26,9 +27,10 @@ async function handleSaveProduct(product: Product) {
   const currentData = (await getStorage<Product[]>("browsedProducts")) || [];
 
   // Add CO2 calculation
+  const co2Footprint = await calculateCO2Footprint(product);
   const productWithCO2 = {
     ...product,
-    co2Footprint: calculateCO2Footprint(),
+    co2Footprint,
   };
 
   const isDuplicate = currentData.some((p) => p.id === productWithCO2.id);
@@ -57,7 +59,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true;
 });
-
-function calculateCO2Footprint(): number {
-  return 0;
-}
