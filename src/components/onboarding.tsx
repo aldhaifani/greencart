@@ -54,14 +54,17 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       case 1:
         return (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Welcome to GreenCart! 🌱</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-bold">Welcome to GreenCart! 🌱</h2>
+            <p className="text-gray-600 text-base">
               GreenCart helps you make environmentally conscious shopping
               decisions by estimating the CO₂ footprint of Amazon products. We
               analyze product details and provide real-time carbon impact
               estimates.
             </p>
-            <Button className="w-full" onClick={() => setCurrentStage(2)}>
+            <Button
+              className="w-full text-base"
+              onClick={() => setCurrentStage(2)}
+            >
               Next
             </Button>
           </div>
@@ -70,14 +73,17 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       case 2:
         return (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Understanding CO₂ Impact 🌍</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-bold">Understanding CO₂ Impact 🌍</h2>
+            <p className="text-gray-600 text-base">
               When you browse Amazon products, GreenCart calculates their
               estimated carbon footprint based on factors like materials,
               weight, and manufacturing processes. This helps you understand the
               environmental impact of your purchases and make greener choices.
             </p>
-            <Button className="w-full" onClick={() => setCurrentStage(3)}>
+            <Button
+              className="w-full text-base"
+              onClick={() => setCurrentStage(3)}
+            >
               Next
             </Button>
           </div>
@@ -86,8 +92,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       case 3:
         return (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Setup Your API Key 🔑</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-bold">Setup Your API Key 🔑</h2>
+            <p className="text-gray-600 text-base">
               GreenCart uses Google's Gemini AI to analyze products. You'll need
               to provide an API key to enable this feature. Don't worry, you can
               always update this later in the extension settings.
@@ -96,7 +102,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               href="https://ai.google.dev/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-green-600 hover:underline block mb-4"
+              className="text-green-600 hover:underline block mb-4 text-base"
             >
               Get your API key from Google AI Studio →
             </a>
@@ -105,11 +111,11 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               placeholder="Enter your Gemini API key"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              className="mb-2"
+              className="mb-2 text-base"
             />
-            {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+            {error && <p className="text-red-500 text-base mb-2">{error}</p>}
             <Button
-              className="w-full"
+              className="w-full text-base"
               onClick={handleApiKeyValidation}
               disabled={!apiKey || isValidating}
             >
@@ -121,23 +127,23 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       case 4:
         return (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">You're All Set! 🎉</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-bold">You're All Set! 🎉</h2>
+            <p className="text-gray-600 text-base">
               Thank you for choosing to shop more sustainably. GreenCart is now
               ready to help you make environmentally conscious shopping
               decisions.
+              <br /> <br />
+              Built with 💚, by {""}
+              <a
+                href="https://www.linkedin.com/in/aldhaifani/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green-600 hover:underline flex items-center text-base"
+              >
+                Tareq - LinkedIn <ExternalLink className="ml-1 h-4 w-4" />
+              </a>
             </p>
-            Built with 💚, by{" "}
-            <a
-              href="https://www.linkedin.com/in/aldhaifani/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-green-600 hover:underline flex items-center"
-            >
-              Tareq - LinkedIn <ExternalLink className="ml-1 h-4 w-4" />
-            </a>
-            <p></p>
-            <Button className="w-full" onClick={onComplete}>
+            <Button className="w-full text-base" onClick={onComplete}>
               Get Started
             </Button>
           </div>
