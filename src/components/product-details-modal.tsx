@@ -43,7 +43,7 @@ export function ProductDetailsModal({
               </div>
             )}
             <h4 className="font-normal text-lg mb-2">
-              CO2 Footprint: {product.co2Footprint} kg{" "}
+              CO₂ Footprint: {product.co2Footprint} kg (estimate){" "}
               <span className="text-tag">{product.co2CalculationModel}</span>
             </h4>
             {/* About This Item */}

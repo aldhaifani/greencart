@@ -328,7 +328,6 @@ const createCO2Overlay = (asin: string) => {
 
       if (product.co2Footprint) {
         // Calculate impact percentage based on CO2 footprint
-        // Using a more appropriate scale: 0-5kg is normal, 5-10kg is medium, >10kg is dangerous
         const impactPercentage = product.co2Footprint;
         const impactClass =
           impactPercentage <= 33
@@ -339,7 +338,7 @@ const createCO2Overlay = (asin: string) => {
 
         content.innerHTML = `
           <div class="co2-result">
-            <span class="co2-label">CO₂ footprint</span>
+            <span class="co2-label">CO₂ footprint (estimate)</span>
             <span class="co2-value">${product.co2Footprint.toFixed(2)} kg</span>
             <span class="co2-model">${
               product.co2CalculationModel || "Unknown model"
