@@ -42,16 +42,28 @@ export function ProductDetailsModal({
                 </span>
               </div>
             )}
-            <h4 className="font-small text-lg mb-2">
+            <h4 className="font-normal text-lg mb-2">
               CO2 Footprint: {product.co2Footprint} kg{" "}
               <span className="text-tag">{product.co2CalculationModel}</span>
             </h4>
-            <p className="text-gray-600">{product.description}</p>
+            {/* About This Item */}
+            {product.about.length > 0 && (
+              <div className="border-t pt-4 mb-2">
+                <h4 className="font-normal text-lg mb-2">About This Item</h4>
+                <ul className="list-disc pl-6 space-y-2">
+                  {product.about.map((point, index) => (
+                    <li key={index} className="text-sm">
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <a
               href={sanitizeLink(product.link)}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-green-600 hover:underline flex items-center"
+              className="text-green-600 hover:underline flex items-center font-normal text-lg"
             >
               View on Amazon <ExternalLink className="ml-1 h-3 w-4" />
             </a>
@@ -59,7 +71,7 @@ export function ProductDetailsModal({
 
           {/* Technical Details */}
           <div className="border-t pt-4">
-            <h4 className="font-medium mb-2">Technical Details</h4>
+            <h2 className="font-normal text-lg mb-2">Technical Details</h2>
             <div className="grid grid-cols-2 gap-4">
               {Object.entries(product.details)
                 .filter(([key]) => !key.toLowerCase().includes("review"))
@@ -71,21 +83,6 @@ export function ProductDetailsModal({
                 ))}
             </div>
           </div>
-
-          {/* About This Item */}
-          {product.about.length > 0 && (
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-2">About This Item</h4>
-              <ul className="list-disc pl-6 space-y-2">
-                {product.about.map((point, index) => (
-                  <li key={index} className="text-sm">
-                    {point}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
           {/* Additional Metadata */}
           <div className="border-t pt-4">
             <p className="text-sm text-gray-600">

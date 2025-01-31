@@ -187,71 +187,47 @@ const init = async () => {
 };
 
 const createCO2Overlay = (asin: string) => {
-  // Create overlay container
   const overlay = document.createElement("div");
   overlay.id = "greencart-overlay";
-  overlay.className = "greencart-overlay";
+  overlay.classList.add("greencart-overlay");
 
-  // Header section
   const header = document.createElement("div");
-  header.className = "greencart-header";
+  header.classList.add("overlay-header");
 
-  const titleContainer = document.createElement("div");
-  titleContainer.className = "greencart-title-container";
+  const titleWrapper = document.createElement("div");
+  titleWrapper.classList.add("overlay-title-wrapper");
 
-  const extensionName = document.createElement("span");
-  extensionName.className = "greencart-extension-name";
-  extensionName.textContent = "GreenCart";
+  const title = document.createElement("span");
+  title.classList.add("overlay-title");
+  title.textContent = "GreenCart";
 
-  const estimateBadge = document.createElement("span");
-  estimateBadge.className = "greencart-estimate-badge";
-  estimateBadge.textContent = "Estimate";
+  titleWrapper.appendChild(title);
 
-  titleContainer.appendChild(extensionName);
-  titleContainer.appendChild(estimateBadge);
-
-  // Close button
   const closeButton = document.createElement("button");
-  closeButton.className = "close-button";
-  closeButton.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" class="close-button-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-    </svg>
-  `;
+  closeButton.classList.add("overlay-close");
+  closeButton.innerHTML = `<svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>`;
   closeButton.onclick = () => overlay.remove();
 
-  header.appendChild(titleContainer);
+  header.appendChild(titleWrapper);
   header.appendChild(closeButton);
 
-  // Content area
   const content = document.createElement("div");
-  content.className = "greencart-content";
+  content.classList.add("overlay-content");
 
-  // Loader icon
-  const loader = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  loader.setAttribute("class", "loader-symbol animate-spin");
-  loader.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  loader.setAttribute("viewBox", "0 0 24 24");
-  loader.setAttribute("fill", "none");
-  loader.setAttribute("stroke", "currentColor");
-  loader.setAttribute("stroke-width", "2");
-  loader.setAttribute("stroke-linecap", "round");
-  loader.setAttribute("stroke-linejoin", "round");
-  loader.innerHTML =
-    '<circle cx="12" cy="12" r="10" class="opacity-25"></circle><path class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>';
+  const loadingContent = document.createElement("div");
+  loadingContent.classList.add("overlay-loading");
 
-  // Status text
+  const spinner = document.createElement("div");
+  spinner.classList.add("overlay-spinner");
+
   const statusText = document.createElement("div");
-  statusText.className = "status-div";
-  const mainText = document.createElement("span");
-  mainText.className = "status-span";
-  mainText.textContent = "Calculating CO₂ impact...";
-  statusText.appendChild(mainText);
+  statusText.classList.add("overlay-status");
+  statusText.textContent = "Calculating CO₂ impact...";
 
-  content.appendChild(loader);
-  content.appendChild(statusText);
+  loadingContent.appendChild(spinner);
+  loadingContent.appendChild(statusText);
+  content.appendChild(loadingContent);
 
-  // Assemble overlay
   overlay.appendChild(header);
   overlay.appendChild(content);
   document.body.appendChild(overlay);
@@ -293,12 +269,12 @@ const createCO2Overlay = (asin: string) => {
       if (processed) return;
       processed = true;
 
-      loader.classList.remove("animate-spin");
-      loader.innerHTML =
+      spinner.classList.remove("animate-spin");
+      spinner.innerHTML =
         '<path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/>';
-      loader.setAttribute("class", "yellow-loader");
-      mainText.className = "main-text";
-      mainText.textContent =
+      spinner.classList.add("yellow-loader");
+      statusText.classList.add("main-text");
+      statusText.textContent =
         "Calculation taking longer than expected. Please go to the extension settings and provide a valid API key.";
 
       chrome.storage.onChanged.removeListener(storageListener);
@@ -336,44 +312,62 @@ const createCO2Overlay = (asin: string) => {
 
   // Helper function to update overlay content
   async function updateOverlayContent(product: Product) {
-    loader.classList.remove("animate-spin");
+    const content = overlay.querySelector(".overlay-content");
+    if (!content) return;
 
     try {
       const apiKey = await getStorage<string>("geminiApiKey");
       if (!apiKey) {
-        loader.innerHTML =
-          '<path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/>';
-        loader.setAttribute("class", "yellow-loader");
-        mainText.className = "main-text";
-        mainText.textContent =
-          "API key not provided. Please go to the extension settings and provide a valid API key.";
+        content.innerHTML = `
+          <div class="co2-result">
+            <span class="co2-label">API key required</span>
+          </div>
+        `;
         return;
       }
 
       if (product.co2Footprint) {
-        // Success state
-        loader.innerHTML =
-          '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>';
-        loader.setAttribute("class", "green-loader");
-        mainText.className = "main-text-green";
-        mainText.innerHTML = `
-          <span class="co2-value">${product.co2Footprint} kg CO₂</span>
-          <span class="co2-calc-model-tag">${product.co2CalculationModel}</span>
+        // Calculate impact percentage based on CO2 footprint
+        // Using a more appropriate scale: 0-5kg is normal, 5-10kg is medium, >10kg is dangerous
+        const impactPercentage = product.co2Footprint;
+        const impactClass =
+          impactPercentage <= 33
+            ? "low"
+            : impactPercentage <= 66
+            ? "medium"
+            : "high";
+
+        content.innerHTML = `
+          <div class="co2-result">
+            <span class="co2-label">CO₂ footprint</span>
+            <span class="co2-value">${product.co2Footprint.toFixed(2)} kg</span>
+            <span class="co2-model">${
+              product.co2CalculationModel || "Unknown model"
+            }</span>
+          </div>
+          <div class="impact-scale">
+            <div class="impact-labels">
+              <span class="impact-label">Normal</span>
+              <span class="impact-label">Dangerous</span>
+            </div>
+            <div class="impact-bar">
+              <div class="impact-progress ${impactClass}" style="width: ${impactPercentage}%"></div>
+            </div>
+          </div>
         `;
       } else {
-        // Error state
-        loader.innerHTML =
-          '<path d="M18 6 6 18"/><path d="m6 6 12 12"/><path d="M12 8v4"/><path d="M12 16h.01"/>';
-        loader.setAttribute("class", "loader-red");
-        mainText.className = "main-text-red";
-        mainText.textContent = "Failed to calculate impact";
+        content.innerHTML = `
+          <div class="co2-result">
+            <span class="co2-label">Calculation failed</span>
+          </div>
+        `;
       }
     } catch (error) {
-      loader.innerHTML =
-        '<path d="M18 6 6 18"/><path d="m6 6 12 12"/><path d="M12 8v4"/><path d="M12 16h.01"/>';
-      loader.setAttribute("class", "loader-red");
-      mainText.className = "main-text-red";
-      mainText.textContent = "Error checking API key status";
+      content.innerHTML = `
+        <div class="co2-result">
+          <span class="co2-label">Error checking API key</span>
+        </div>
+      `;
     }
   }
 };
