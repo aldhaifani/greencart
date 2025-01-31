@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "GreenCart",
   "description": "See real-time CO2 footprint of Amazon products to make eco-friendly shopping decisions and track your environmental impact.",
-  "version": "1.0",
+  "version": "1.1",
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",
