@@ -13,12 +13,12 @@ GreenCart is a Chrome extension that helps users make environmentally conscious 
 
 ## Installation
 
-> Currently under review by the Chrome Extension Store.
+> You can just install it from the Chrome Extension Store [here](https://chrome.google.com/webstore/detail/cielgapinimfngpggemgekcdmbmcppfm).
 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/greencart.git
+   git clone https://github.com/aldhaifani/greencart.git
    cd greencart
    ```
 
