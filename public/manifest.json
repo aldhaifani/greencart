@@ -34,7 +34,7 @@
     "type": "module",
     "service_worker": "service_worker.js"
   },
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage"],
   "host_permissions": [
     "https://*.amazon.com/*",
     "https://*.amazon.co.uk/*",
